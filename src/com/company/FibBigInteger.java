@@ -5,7 +5,7 @@ import java.math.BigInteger;
 public class FibBigInteger {
 
     //classic fib with BigInt
-    public static BigInteger fibBigIntegerLoop(int nth) {
+    public static BigInteger fibLoop(int nth) {
         BigInteger a = new BigInteger("0");
         BigInteger b = new BigInteger("1");
         BigInteger c;
@@ -23,7 +23,7 @@ public class FibBigInteger {
     }
 
     //fibMatrix with BigInt
-    public static BigInteger fibBigIntegerMatrix(int nth) {
+    public static BigInteger fibMatrix(int nth) {
         if (nth == 0)
             return new BigInteger("0");
 
