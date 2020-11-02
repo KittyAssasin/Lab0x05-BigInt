@@ -12,6 +12,10 @@ public class MatrixBigInteger {
         matrix = new BigInteger[rows][columns];
         M = rows;
         N = columns;
+        //need to expressly set values to 0
+        for (int i = 0; i < rows; i++)
+            for (int k = 0; k < columns; k++)
+                matrix[i][k] = new BigInteger("0");
     }
 
     public MatrixBigInteger(int[][] array2D) {
