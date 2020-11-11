@@ -39,136 +39,196 @@ public final class BigInt {
         this.magnitude = bigInt.magnitude;
     }
 
-    public static BigInt negate(BigInt a) {
-        if (a.isNegative)
-            return new BigInt(a.absValue);
+    public BigInt negate() {
+        if (this.isNegative)
+            return new BigInt(this.absValue);
         else
-            return new BigInt("-" + a.absValue);
+            return new BigInt("-" + this.absValue);
     }
 
-    public static BigInt add(BigInt a, BigInt b) {
-        if (isZero(a)) //shortcuts
+    public BigInt add(BigInt b) {
+        if (this.isZero()) //shortcuts
             return new BigInt(b);
-        if (isZero(b))
-            return new BigInt(a);
+        if (b.isZero())
+            return new BigInt(this);
 
-        if (a.isNegative ^ b.isNegative) //if either, but not both, are negative (XOR)
-            if (a.isNegative) //if a is negative (-a) + b = b - |a|
-                return sub(b, negate(a));
+        if (this.isNegative ^ b.isNegative) //if either, but not both, are negative (XOR)
+            if (this.isNegative) //if a is negative (-a) + b = b - |a|
+                return b.sub(this.negate());
             else
-                return sub(a, negate(b)); //if b is negative a + (-b) = a - |b|
+                return this.sub(b.negate()); //if b is negative a + (-b) = a - |b|
 
-        //both are positive or negative, operation is the same on the abs values
-        String sum = "";
-        boolean carry = false;
-        if (a.magnitude >= b.magnitude) { //if a is longer or equal (greater magnitude) than b's, saves time
-            int magOffset = a.magnitude - b.magnitude;
-            int i;
-            for (i = a.magnitude; i - magOffset >= 0; i--) {
-                int subSum = a.absValue.charAt(i) + b.absValue.charAt(i - magOffset) - UNICODE_OFFSET_DOUBLE;
-                if (carry)
-                    subSum++;
-                if (subSum > 9) {
-                    carry = true;
-                    sum = (subSum - 10) + sum;
-                } else {
-                    carry = false;
-                    sum = subSum + sum;
-                }
-            }
-            while (carry) { //if there are left over carry operations (e.q. 9999 + 1) we need to handle
-                if (i < 0) { //if we are at the end (e.q. 555 + 555)
-                    sum = "1" + sum;
-                    break;
-                }
-                int subSum = a.absValue.charAt(i) + 1 - UNICODE_OFFSET;
-                if (subSum < 10) {
-                    carry = false;
-                    sum = subSum + sum;
-                } else {
-                    if (i == 0) { //at the highest magnitude
-                        carry = false;
-                        sum = subSum + sum;
-                    } else {
-                        sum = (subSum - 10) + sum;
-                    }
-                }
-                i--;
-            }
-            //getting the rest of numbers
-            if (i >= 0)
-                sum = a.absValue.substring(0,i+1) + sum;
+        //both are positive or negative, operation on abs value is the same
+        BigInt A;
+        BigInt B;
+        if (this.magnitude >= b.magnitude) { //checks for longer value
+            A = this;
+            B = b;
         } else {
-            int magOffset = b.magnitude - a.magnitude;
-            int i;
-            for (i = b.magnitude; i - magOffset >= 0; i--) {
-                int subSum = b.absValue.charAt(i) + a.absValue.charAt(i - magOffset) - UNICODE_OFFSET_DOUBLE;
-                if (carry)
-                    subSum++;
-                if (subSum > 9) {
-                    carry = true;
-                    sum = (subSum - 10) + sum;
-                } else {
-                    carry = false;
-                    sum = subSum + sum;
-                }
-            }
-            while (carry) { //if there are left over carry operations (e.q. 9999 + 1) we need to handle
-                if (i < 0) { //if we are at the end (e.q. 555 + 555)
-                    sum = "1" + sum;
-                    break;
-                }
-                int subSum = b.absValue.charAt(i) + 1 - UNICODE_OFFSET;
-                if (subSum < 10) {
-                    carry = false;
-                    sum = subSum + sum;
-                } else {
-                    if (i == 0) { //at the highest magnitude
-                        carry = false;
-                        sum = subSum + sum;
-                    } else {
-                        sum = (subSum - 10) + sum;
-                    }
-                }
-                i--;
-            }
-            //getting the rest of numbers
-            if (i >= 0)
-                sum = b.absValue.substring(0,i+1) + sum;
+            A = b;
+            B = this;
         }
-        if (a.isNegative)
-            sum = "-" + sum;
-        return new BigInt(sum);
+
+        String sum = "";
+        boolean carryFlag = false;
+        int magOffset = A.magnitude - B.magnitude;
+        int i;
+        for (i = A.magnitude; i - magOffset >= 0; i--) {
+            int subSum = A.absValue.charAt(i) + B.absValue.charAt(i - magOffset) - UNICODE_OFFSET_DOUBLE;
+            if (carryFlag)
+                subSum++;
+            if (subSum > 9) {
+                carryFlag = true;
+                sum = (subSum - 10) + sum;
+            } else {
+                carryFlag = false;
+                sum = subSum + sum;
+            }
+        }
+        while (carryFlag) { //if there are left over carry operations (e.q. 9999 + 1) we need to handle
+            if (i < 0) { //if we are at the end (e.q. 555 + 555)
+                sum = "1" + sum;
+                break;
+            }
+            int subSum = A.absValue.charAt(i) + 1 - UNICODE_OFFSET;
+            if (subSum < 10) {
+                carryFlag = false;
+                sum = subSum + sum;
+            } else {
+                if (i == 0) { //at the highest magnitude
+                    carryFlag = false;
+                    sum = subSum + sum;
+                } else {
+                    sum = (subSum - 10) + sum;
+                }
+            }
+            i--;
+        }
+        //getting the rest of numbers
+        if (i >= 0)
+            sum = A.absValue.substring(0,i + 1) + sum;
+
+        return new BigInt((this.isNegative ? "-" : "") + sum);
     }
 
-    public static BigInt sub(BigInt a, BigInt b) {
-        if (isZero(a))
-            return negate(b);
-        if (isZero(b))
-            return new BigInt(a);
+    public BigInt sub(BigInt b) {
+        if (this.isZero())
+            return b.negate();
+        if (b.isZero())
+            return new BigInt(this);
 
-        if (a.isNegative ^ b.isNegative)
-            return add(a, negate(b));
+        if (this.isEqual(b))
+            return new BigInt(0);
 
-        if (a.isNegative && b.isNegative) //(-a)-(-b) = b-a
-            return sub(negate(b), negate(a));
+        if (this.isNegative ^ b.isNegative)
+            return this.add(b.negate());
+
+        if (this.isNegative && b.isNegative) //(-a)-(-b) = b-a
+            return b.negate().sub(this.negate());
+
 
         //refactored so a and b can only be positive now
-        //if (a.magnitude)
-
-        return a;
+        boolean negate = !this.isGreater(b);
+        BigInt A;
+        BigInt B;
+        if (negate) { // A always > B
+            A = b;
+            B = this;
+        } else {
+            A = this;
+            B = b;
+        }
+        String diff = "";
+        int magOffset = A.magnitude - B.magnitude;
+        boolean carryFlag = false;
+        int i;
+        for (i = A.magnitude; i - magOffset>= 0; i--) {
+            int subDiff = A.absValue.charAt(i) - B.absValue.charAt(i - magOffset); // no double offset needed
+            if (carryFlag)
+                subDiff--;
+            if (subDiff < 0) {
+                carryFlag = true;
+                diff = (subDiff + 10) + diff;
+            } else {
+                carryFlag = false;
+                diff = subDiff + diff;
+            }
+        }
+        while (carryFlag) {
+            if (i < 0)
+                break;
+            int subDiff = A.absValue.charAt(i) - 1 - UNICODE_OFFSET;
+            if (subDiff >= 0) {
+                diff = subDiff + diff;
+                carryFlag = false;
+            } else {
+                diff = (subDiff + 10) + diff;
+            }
+            i--;
+        }
+        diff = trimLeadingZeros(diff);
+        return new BigInt((negate ? "-" : "") + diff);
     }
 
-    public static boolean isZero(BigInt a) {
-        return a.absValue.equals("0");
+    public boolean isZero() {
+        return this.absValue.equals("0");
     }
 
-    public static boolean areEqual(BigInt a, BigInt b) {
-        return (a.isNegative == b.isNegative) && (a.absValue.equals(b.absValue));
+    public boolean isEqual(BigInt b) {
+        return (this.isNegative == b.isNegative) && (this.absValue.equals(b.absValue));
     }
 
-    public static BigInt multiply(BigInt a, BigInt b) {
-        return a;
+    public boolean isGreater(BigInt b) {
+
+        if (this.isEqual(b))
+            return false;
+
+        if (!this.isNegative) {
+            if (b.isNegative) // positive a > negative b
+                return true;
+
+            //positive a ?> positive b
+            if (this.magnitude > b.magnitude) // pos aa > pos b
+                return true;
+            if (this.magnitude < b.magnitude) // pos a < pos bb
+                return false;
+
+            for (int i = 0; i <= this.magnitude; i++) {
+                if (this.absValue.charAt(i) > b.absValue.charAt(i))
+                    return true;
+                if (this.absValue.charAt(i) < b.absValue.charAt(i))
+                    return false;
+                // continue if elements at i are the same
+            }
+        } else {
+            if (!b.isNegative) // negative a < positive b
+                return false;
+
+            //negative a ?> negative b
+            if (this.magnitude > b.magnitude) // neg aa < neg b
+                return false;
+            if (this.magnitude < b.magnitude) //neg a > neg bb
+                return true;
+
+            for (int i = 0; i <= this.magnitude; i++) {
+                if (this.absValue.charAt(i) > b.absValue.charAt(i))
+                    return false;
+                if (this.absValue.charAt(i) < b.absValue.charAt(i))
+                    return false;
+                // continue if elements at i are the same
+            }
+        }
+        return false; // safeguard, numbers are equal
+    }
+
+    private static String trimLeadingZeros(String s) {
+        if (s.charAt(0) == '0')
+            return trimLeadingZeros(s.substring(1));
+        return s;
+    }
+
+    public BigInt multiply(BigInt b) {
+        return this;
     }
 
     public String inspect() {
