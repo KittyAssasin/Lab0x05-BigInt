@@ -8,12 +8,12 @@ public class Test {
     public static void runTest(boolean verbose) {
         final long MAX_TIME = 300_000_000_000L;
         final int MAX_TRIALS = 10;
-        long startTime = 0L;
+        long startTime;
 
         int n; //n is for arithmetic testing
         int nStart = 1;
         int nScale = 2;
-        int nSteps = 15; //max n value (nScale^nSteps = n)
+        int nSteps = 23; //max n value (nScale^nSteps = n)
         long[] additionTimes = new long[nSteps];
         long[] multiplicationTimes = new long[nSteps];
         //for performance reasons, I will not be logging the generated values, as it's simply fluff
@@ -111,6 +111,8 @@ public class Test {
                 break;
             xInc *= xScale;
         }
+
+        //mult testing
         x = xStart;
         xInc = xIncStart;
         for (int i = 0; i < xNSteps; i++) {
@@ -162,7 +164,7 @@ public class Test {
         System.out.format("%8d%12d%10s%10s\n", n, multiplicationTimes[0], "----", "----");
         n *= nScale;
         for (int i = 1; i < nSteps; i++) {
-            System.out.format("%8d%12d%10.3f%10.3f\n", n, multiplicationTimes[i], (double) multiplicationTimes[i] / multiplicationTimes[i-1], 2.0);
+            System.out.format("%8d%12d%10.3f%10.3f\n", n, multiplicationTimes[i], (double) multiplicationTimes[i] / multiplicationTimes[i-1], Math.pow(n,2)/Math.pow((double)n/2,2));
             n *= nScale;
         }
 
@@ -182,7 +184,7 @@ public class Test {
         for (int i = 1; i < xNSteps; i++) {
             for (int k = 0; k < xScale-1; k++) {
                 System.out.format("%8d%12d%12d%10.3f%10.3f%10.3f\n", i+1, x, fibloopTimes[k][i], (double) fibloopTimes[k][i] / fibloopTimes[k][i-1],
-                        0.0, 0.0);
+                        Math.pow(x,2)/Math.pow((double)x/2, 2), 0.0);
                 x += xInc;
             }
             xInc *= xScale;
