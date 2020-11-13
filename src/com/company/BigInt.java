@@ -228,7 +228,28 @@ public final class BigInt {
     }
 
     public BigInt multiply(BigInt b) {
-        return this;
+        boolean negativeResult = false;
+        BigInt A = this;
+        BigInt B = b;
+        if (this.isNegative) {
+            negativeResult = true;
+            A = this.negate();
+        }
+        if (b.isNegative) {
+            negativeResult = !negativeResult;
+            B = b.negate();
+        }
+
+        if (negativeResult)
+            return A.multiplyRecursiveInternal(B).negate();
+        else
+            return A.multiplyRecursiveInternal(B);
+    }
+
+    private BigInt multiplyRecursiveInternal(BigInt b) {
+        if (b.isZero())
+            return new BigInt();
+        return this.add(this.multiply(b.sub(new BigInt(1))));
     }
 
     public String inspect() {
